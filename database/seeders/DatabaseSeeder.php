@@ -17,5 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SemesterSeeder::class);
         $this->call(RouterSeeder::class);
         $this->call(DocumentRequestSeeder::class);
+        $this->call(TransactionSeeder::class);
+        $this->call(EpistolaSeeder::class);
     }
 }

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Secretariat;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Models\Semester;
 use App\Models\User;
+use App\Models\WorkshopBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -29,12 +31,22 @@ class UserController extends Controller
         $this->middleware('auth');
     }
 
-    public function updateEmail(Request $request)
+    public function update(Request $request)
     {
         $user = Auth::user();
 
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:225|unique:users',
+            //only one should exist at a time
+            'email' => 'email|max:225|unique:users',
+            'phone_number' => 'string|min:16|max:18',
+            'mothers_name' => 'string|max:225',
+            'place_of_birth' => 'string|max:225',
+            'date_of_birth' => 'string|max:225',
+            'country' => 'string|max:255',
+            'county' => 'string|max:255',
+            'zip_code' => 'string|max:31',
+            'city' => 'string|max:255',
+            'street_and_number' => 'string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -42,32 +54,15 @@ class UserController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $user->update([
-            'email' => $request->email,
-        ]);
-
-        return redirect()->back()->with('message', __('general.successful_modification'));
-    }
-
-    public function updatePhone(Request $request)
-    {
-        $user = Auth::user();
-
-        if ($user->hasPersonalInformation()) {
-            $validator = Validator::make($request->all(), [
-                'phone_number' => 'required|string|min:16|max:18',
-            ]);
-
-            if ($validator->fails()) {
-                return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput();
-            }
-
-            $user->personalInformation->update([
-                'phone_number' => $request->phone_number,
-            ]);
+        if ($request->has('email')) {
+            $user->update(['email' => $request->email]);
         }
+        if ($user->hasPersonalInformation() && $request->hasAny(
+            ['place_of_birth', 'date_of_birth', 'mothers_name', 'phone_number', 'country', 'county', 'zip_code', 'city', 'street_and_number']
+        )) {
+            $user->personalInformation->update($request->all());
+        }
+        //TODO: educational information
 
         return redirect()->back()->with('message', __('general.successful_modification'));
     }
@@ -105,6 +100,8 @@ class UserController extends Controller
             } else {
                 $user->setExtern();
             }
+
+            WorkshopBalance::generateBalances(Semester::current()->id);
         } else {
             return response()->json(null, 400);
         }
@@ -147,11 +144,14 @@ class UserController extends Controller
     public function updateSemesterStatus($id, $semester, $status)
     {
         $user = User::findOrFail($id);
+        $semester = Semester::find($semester);
 
         // TODO
         $this->authorize('view', $user);
 
-        $user->setStatusFor(\App\Models\Semester::find($semester), $status);
+        $user->setStatusFor($semester, $status);
+
+        WorkshopBalance::generateBalances($semester->id);
 
         return redirect()->back()->with('message', __('general.successful_modification'));
     }
@@ -164,6 +164,8 @@ class UserController extends Controller
         $user = User::findOrFail($user);
 
         $user->workshops()->detach($workshop);
+
+        WorkshopBalance::generateBalances(Semester::current()->id);
     }
 
     public function addUserWorkshop(Request $request, $user)
@@ -183,6 +185,8 @@ class UserController extends Controller
                 ->withInput();
         }
         $user->workshops()->attach($request->workshop_id);
+
+        WorkshopBalance::generateBalances(Semester::current()->id);
 
         return redirect()->back()->with('message', __('general.successfully_added'));
     }

@@ -27,6 +27,7 @@ use App\Http\Controllers\Secretariat\SecretariatController;
 use App\Http\Controllers\Secretariat\SemesterController;
 use App\Http\Controllers\Secretariat\UserController;
 use App\Http\Controllers\StudentsCouncil\EconomicController;
+use App\Http\Controllers\StudentsCouncil\EpistolaController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth', 'log', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::post('/home/edit', [HomeController::class, 'editNews'])->name('home.edit');
     Route::post('/color/{mode}', [HomeController::class, 'colorMode'])->name('set-color-mode');
 
     Route::post('/report_bug', [HomeController::class, 'reportBug'])->name('reportbug');
@@ -53,8 +55,7 @@ Route::middleware(['auth', 'log', 'verified'])->group(function () {
 
     /** User related routes */
     Route::get('/user', [UserController::class, 'index'])->name('user');
-    Route::post('/secretariat/user/update_email', [UserController::class, 'updateEmail'])->name('secretariat.user.update_email');
-    Route::post('/secretariat/user/update_phone', [UserController::class, 'updatePhone'])->name('secretariat.user.update_phone');
+    Route::post('/secretariat/user/update', [UserController::class, 'update'])->name('secretariat.user.update');
     Route::get('/secretariat/user/list', [UserController::class, 'list'])->name('secretariat.user.list');
     Route::get('/secretariat/user/show/{id}', [UserController::class, 'show'])->name('secretariat.user.show');
     Route::get('/secretariat/user/semesters/{id}', [UserController::class, 'semesters'])->name('secretariat.user.semesters');
@@ -160,11 +161,20 @@ Route::middleware(['auth', 'log', 'verified'])->group(function () {
 
     /** Students' Council */
     Route::get('/economic_committee', [EconomicController::class, 'index'])->name('economic_committee');
-    Route::get('/economic_committee/transaction', [EconomicController::class, 'indexTransaction'])->name('economic_committee.transaction');
     Route::post('/economic_committee/transaction/add', [EconomicController::class, 'addTransaction'])->name('economic_committee.transaction.add');
     Route::get('/economic_committee/transaction/delete/{transaction}', [EconomicController::class, 'deleteTransaction'])->name('economic_committee.transaction.delete');
     Route::get('/economic_committee/kktnetreg', [EconomicController::class, 'indexKKTNetreg'])->name('kktnetreg');
     Route::post('/economic_committee/kktnetreg/pay', [EconomicController::class, 'payKKTNetreg'])->name('kktnetreg.pay');
     Route::get('/economic_committee/calculate_workshop_balance', [EconomicController::class, 'calculateWorkshopBalance'])->name('economic_committee.workshop_balance');
     Route::post('/economic_committee/kktnetreg/to_checkout', [EconomicController::class, 'KKTNetregToCheckout'])->name('economic_committee.to_checkout');
+
+    Route::get('/communication_committee/epistola', [EpistolaController::class, 'index'])->name('epistola');
+    Route::get('/communication_committee/epistola/new', [EpistolaController::class, 'new'])->name('epistola.new');
+    Route::get('/communication_committee/epistola/edit/{epistola}', [EpistolaController::class, 'edit'])->name('epistola.edit');
+    Route::post('/communication_committee/epistola/update_or_create', [EpistolaController::class, 'updateOrCreate'])->name('epistola.update_or_create');
+    Route::get('/communication_committee/epistola/restore/{epistola}', [EpistolaController::class, 'restore'])->name('epistola.restore');
+    Route::post('/communication_committee/epistola/mark_as_sent/{epistola}', [EpistolaController::class, 'markAsSent'])->name('epistola.mark_as_sent');
+    Route::post('/communication_committee/epistola/delete/{epistola}', [EpistolaController::class, 'delete'])->name('epistola.delete');
+    Route::get('/communication_committee/epistola/preview', [EpistolaController::class, 'preview'])->name('epistola.preview');
+    Route::get('/communication_committee/epistola/send', [EpistolaController::class, 'send'])->name('epistola.send');
 });
