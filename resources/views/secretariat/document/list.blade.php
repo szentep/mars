@@ -4,7 +4,7 @@
 <a href="#!" class="breadcrumb">@lang('admin.admin')</a>
 <a href="#!" class="breadcrumb">@lang('admin.document_requests')</a>
 @endsection
-@section('admin_module') active @endsection
+@section('secretariat_module') active @endsection
 
 @section('content')
 <div class="row">
